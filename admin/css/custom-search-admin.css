@@ -1,0 +1,29 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+.form-table th{
+	width: 245px;
+} 
+.wide {
+    width: 50% !important;
+    height: 40px;
+}
+.error {
+    color: #e02222;
+}
+.wide.error {
+    border: 1px solid red ;
+}
+input.wide.success {
+  border: 2px solid #06E206;
+}
+select#funnel_list {
+    width: 95% !important;
+}
+table.widefat {
+    margin-bottom: 15px;  
+}
+li.links_css {
+    padding: 5px;
+}
