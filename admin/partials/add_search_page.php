@@ -11,13 +11,50 @@
  * @package    Custom_Search
  * @subpackage Custom_Search/admin/partials
  */
-
+global $wpdb;
 $text_before ='';
 $text_after  ='';
-// $_POST['text_before'];
-if(!empty($_POST)){
-	print_r($_POST);
+$active_ingredient = '0';
+$table = $wpdb->prefix.'search_forms';
+if(isset($_POST['submit_page'])) {
+    if ( ! isset( $_POST['search_page_nonce_field'] ) || ! wp_verify_nonce( $_POST['search_page_nonce_field'], 'search_page_action' ) ) {
+       print 'Sorry, your nonce did not verify.';
+       exit;
+
+    } else {
+         print_r($_POST);
+         $keyword = trim($_POST['keyword']);
+         $count   = trim($_POST['count']);
+         $title   = trim($_POST['title']);
+         $meta_desc = trim($_POST['meta_desc']);
+         $text_before = trim($_POST['text_before']);
+         $text_after = trim($_POST['text_after']);
+         $active_ingredient =  (array_key_exists("active_ingredient",$_POST))?'1':'0';
+
+         $data = array(
+            'keyword' => $keyword,
+            'count' => $count,
+            'title' => $title,
+            'meta_desc' => $meta_desc,
+            'text_before' => $text_before,
+            'text_after' => $text_after,
+            'active_ingredient' => $active_ingredient,
+        );
+
+         $wpdb->insert($table,$data);
+
+         // wp_redirect("admin.php?page=search-pages");
+    }
+}    
+
+/*$key = 'peepso_admin_notices_'. get_current_user_id();
+$notices = get_transient($key);
+//print_r($notices);
+if ($notices) {
+    foreach ($notices as $notice)
+        echo '<div class="', $notice['class'], '" style="padding:11px 15px; margin:5px 15px 2px 0;">', $notice['message'], '</div>' . PHP_EOL;
 }
+delete_transient( $key );*/
 ?>
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
@@ -34,26 +71,26 @@ if(!empty($_POST)){
                     <?php
 			        // this prevent automated script for unwanted spam
 			        if(function_exists('wp_nonce_field'))
-			            wp_nonce_field('search_page_reg', 'search_page_reg');
+                        wp_nonce_field( 'search_page_action', 'search_page_nonce_field' );
 			        ?>
                      
                     <table class="form-table">
 
                         <tr valign="top">
                             <th scope="row">
-                                <label><?php _e("Search Keyword", $this->plugin_name); ?></label>
+                                <label><?php _e("Search Keyword", $this->plugin_name); ?> * </label>
                             </th>
                             <td>
-                                <input type="text" name="keyword" value='<?php echo (!empty($apiResponse["keyword"])) ? $apiResponse["keyword"] : $user_info["keyword"]; ?>' class='wide' placeholder="Enter here the keyword" required />
+                                <input type="text" name="keyword" value='<?php echo (!empty($apiResponse["keyword"])) ? $apiResponse["keyword"] : ''; ?>' class='wide' placeholder="Enter here the keyword" required />
                             </td>
                         </tr>
 
                         <tr valign="top">
                             <th scope="row">
-                                <label><?php _e("Count of Results", $this->plugin_name); ?></label>
+                                <label><?php _e("Count of Results", $this->plugin_name); ?> * </label>
                             </th>
                             <td>
-                                <select name="count" value='<?php echo (!empty($apiResponse["count"])) ? $apiResponse["count"] :  $user_info["count"]; ?>' class='wide' required>
+                                <select name="count" value='<?php echo (!empty($apiResponse["count"])) ? $apiResponse["count"] :  ''; ?>' class='wide' required>
                                 <option value="">Select Count</option>
                                 <option value="5">5</option>
                                 <option value="10">10</option>
@@ -65,20 +102,20 @@ if(!empty($_POST)){
 
                         <tr valign="top">
                             <th scope="row">
-                                <label><?php _e("Title", $this->plugin_name); ?></label>
+                                <label><?php _e("Title", $this->plugin_name); ?> * </label>
                             </th>
                             <td>
-                                <input type="text" name="title" value='<?php echo (!empty($apiResponse["title"])) ? $apiResponse["title"] : $user_info["title"]; ?>' class='wide' placeholder="Enter here title" />
+                                <input type="text" name="title" value='<?php echo (!empty($apiResponse["title"])) ? $apiResponse["title"] : ''; ?>' class='wide' placeholder="Enter here title" />
                               
                             </td>
                         </tr>
 
                          <tr valign="top">
                             <th scope="row">
-                                <label><?php _e("Meta Description", $this->plugin_name); ?></label>
+                                <label><?php _e("Meta Description", $this->plugin_name); ?> * </label>
                             </th>
                             <td>
-                                <input type="text" name="meta_desc" value='<?php echo (!empty($apiResponse["meta_desc"])) ? $apiResponse["meta_desc"] : $user_info["meta_desc"]; ?>' class='wide' placeholder="Enter here Meta Description" />
+                                <input type="text" name="meta_desc" value='<?php echo (!empty($apiResponse["meta_desc"])) ? $apiResponse["meta_desc"] : ''; ?>' class='wide' placeholder="Enter here Meta Description" />
                               
                             </td>
                         </tr>
@@ -117,7 +154,7 @@ if(!empty($_POST)){
 
                     <div>
                         <p class="submit">
-                            <input type="submit" class="button-primary" value="<?php _e('Save Form') ?>" />
+                            <input type="submit" name="submit_page" class="button-primary" value="<?php _e('Save Form') ?>" />
                         </p>
                     </div>		
                 </form>
