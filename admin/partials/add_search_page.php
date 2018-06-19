@@ -22,7 +22,7 @@ if(isset($_POST['submit_page'])) {
        exit;
 
     } else {
-         print_r($_POST);
+         //print_r($_POST);
          $keyword = trim($_POST['keyword']);
          $count   = trim($_POST['count']);
          $title   = trim($_POST['title']);
@@ -41,28 +41,25 @@ if(isset($_POST['submit_page'])) {
             'active_ingredient' => $active_ingredient,
         );
 
-         $wpdb->insert($table,$data);
-
-         // wp_redirect("admin.php?page=search-pages");
+         if($wpdb->insert($table,$data)){
+		 	$this->cs_add_notice("New Form Inserted Successfully",'note');
+		 	 wp_redirect("admin.php?page=search-pages");
+        	 exit;
+		 }else{
+		 	$this->cs_add_notice("Form not Inserted! Please try again.",'error');
+		 }
+         
+		
+       
     }
 }    
 
-/*$key = 'peepso_admin_notices_'. get_current_user_id();
-$notices = get_transient($key);
-//print_r($notices);
-if ($notices) {
-    foreach ($notices as $notice)
-        echo '<div class="', $notice['class'], '" style="padding:11px 15px; margin:5px 15px 2px 0;">', $notice['message'], '</div>' . PHP_EOL;
-}
-delete_transient( $key );*/
 ?>
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div class="wrap">
 
-<div class="update-nag notice">
-    <p>This................</p>
-</div>
+<?php include_once('notification.php'); ?>
 
 	<div id="poststuff" class="">
         <div id="post-body">

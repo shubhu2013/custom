@@ -100,8 +100,8 @@ class Custom_Search_Admin {
 
 	}
 	public function cs_admin_menu(){
-		//add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $position );
-		add_menu_page('Search Pages', 'Search Pages', 'administrator', 'search-pages',array(&$this, 'all_search_pages'));
+		
+		add_menu_page('Search Pages', 'Search Pages', 'administrator', 'search-pages',array(&$this, 'all_search_pages'),'dashicons-admin-site',5);
 		 add_submenu_page( 'search-pages', 'New Search Page', 'Add New', 'administrator', 'new-search-page', array(&$this, 'add_search_page') );
 	}
 	function all_search_pages(){
@@ -109,6 +109,37 @@ class Custom_Search_Admin {
 	}
 	function add_search_page(){
 		include_once 'partials/add_search_page.php';	
+	}
+	public function cs_add_notice($notice, $type = 'error')
+	{
+		$types = array(
+			'error' => 'error',
+			'warning' => 'update-nag',
+			'info' => 'check-column',
+			'note' => 'updated',
+			'none' => '',
+		);
+		if (!array_key_exists($type, $types))
+			$type = 'none';
+
+		$notice_data = array('class' => $types[$type], 'message' => $notice);
+
+		$key = 'cs_admin_notices_' . get_current_user_id();
+		$notices = get_transient($key);
+
+		if (FALSE === $notices)
+			$notices = array($notice_data);
+
+		// only add the message if it's not already there
+		$found = FALSE;
+		foreach ($notices as $notice) {
+			if ($notice_data['message'] === $notice['message'])
+				$found = TRUE;
+		}
+		if (!$found)
+			$notices[] = $notice_data;
+
+		set_transient($key, $notices, 3600);
 	}
 
 }

@@ -73,6 +73,8 @@ class Custom_Search {
 			$this->version = '1.0.0';
 		}
 		$this->plugin_name = 'custom-search';
+		
+		$this->table_search = 'search_forms';
 
 		$this->load_dependencies();
 		$this->set_locale();

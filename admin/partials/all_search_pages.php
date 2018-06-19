@@ -15,10 +15,12 @@
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div class="wrap">
+<?php include_once('notification.php'); ?>
 	<div id="poststuff" class="">
 
         <div id="post-body">
             <div id="post-body-content">
+             <h2>Coming soon</h2>
             </div>
         </div>
     </div>        
