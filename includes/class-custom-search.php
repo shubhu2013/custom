@@ -124,6 +124,9 @@ class Custom_Search {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-custom-search-public.php';
 
+
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-custom-list-table.php';
+
 		$this->loader = new Custom_Search_Loader();
 
 	}
