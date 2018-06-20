@@ -3,33 +3,20 @@ if( ! class_exists( 'WP_List_Table' ) ) {
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 class Custom_List_Table extends WP_List_Table {
-
-	var $example_data = array(
-            array( 'ID' => 1,'booktitle' => 'Quarter Share', 'author' => 'Nathan Lowell', 
-                   'isbn' => '978-0982514542' ),
-            array( 'ID' => 2, 'booktitle' => '7th Son: Descent','author' => 'J. C. Hutchins',
-                   'isbn' => '0312384378' ),
-            array( 'ID' => 3, 'booktitle' => 'Shadowmagic', 'author' => 'John Lenahan',
-                   'isbn' => '978-1905548927' ),
-            array( 'ID' => 4, 'booktitle' => 'The Crown Conspiracy', 'author' => 'Michael J. Sullivan',
-                   'isbn' => '978-0979621130' ),
-            array( 'ID' => 5, 'booktitle'     => 'Max Quick: The Pocket and the Pendant', 'author'    => 'Mark Jeffrey',
-                   'isbn' => '978-0061988929' ),
-            array('ID' => 6, 'booktitle' => 'Jack Wakes Up: A Novel', 'author' => 'Seth Harwood',
-                  'isbn' => '978-0307454355' )
-        );
+	
     function __construct(){
     global $status, $page;
 
         parent::__construct( array(
-            'singular'  => __( 'book', 'mylisttable' ),     //singular name of the listed records
-            'plural'    => __( 'books', 'mylisttable' ),   //plural name of the listed records
+            'singular'  => __( 'search form', 'mylisttable' ),     //singular name of the listed records
+            'plural'    => __( 'search forms', 'mylisttable' ),   //plural name of the listed records
             'ajax'      => false        //does this table support ajax?
 
     ) );
         //print_r($_REQUEST);
-    add_action( 'admin_head', array( &$this, 'admin_header' ) );            
-
+    add_action( 'admin_head', array( &$this, 'admin_header' ) ); 
+    
+    
     }
 
   function admin_header() {
@@ -43,16 +30,67 @@ class Custom_List_Table extends WP_List_Table {
     echo '.wp-list-table .column-isbn { width: 20%;}';
     echo '</style>';
   }
+  
+  public static function get_records( $per_page = 10, $page_number = 1 ) {
+
+		global $wpdb;
+
+		$sql = "SELECT * FROM {$wpdb->prefix}search_forms";
+
+		if ( ! empty( $_REQUEST['orderby'] ) ) {
+			$sql .= ' ORDER BY ' . esc_sql( $_REQUEST['orderby'] );
+			$sql .= ! empty( $_REQUEST['order'] ) ? ' ' . esc_sql( $_REQUEST['order'] ) : ' ASC';
+		}else{
+			$sql .= ' ORDER BY add_date DESC';
+		}
+
+		$sql .= " LIMIT $per_page";
+		$sql .= ' OFFSET ' . ( $page_number - 1 ) * $per_page;
+
+
+		$result = $wpdb->get_results( $sql, 'ARRAY_A' );
+
+		return $result;
+	}
+	/**
+	 * Returns the count of records in the database.
+	 *
+	 * @return null|string
+	 */
+	public static function record_count() {
+		global $wpdb;
+
+		$sql = "SELECT COUNT(*) FROM {$wpdb->prefix}search_forms";
+
+		return $wpdb->get_var( $sql );
+	}
+	
+	/**
+	 * Delete a customer record.
+	 *
+	 * @param int $id customer ID
+	 */
+	public static function delete_record( $id ) {
+		global $wpdb;
+
+		$wpdb->delete(
+			"{$wpdb->prefix}search_forms",
+			[ 'id' => $id ],
+			[ '%d' ]
+		);
+	}
 
   function no_items() {
-    _e( 'No books found, dude.' );
+    _e( 'No search form found, dude.' );
   }
 
   function column_default( $item, $column_name ) {
     switch( $column_name ) { 
-        case 'booktitle':
+        case 'keyword':
+        case 'title':
+        case 'meta_desc':
         case 'author':
-        case 'isbn':
+        case 'count':
             return $item[ $column_name ];
         default:
             return print_r( $item, true ) ; //Show the whole array for troubleshooting purposes
@@ -61,9 +99,11 @@ class Custom_List_Table extends WP_List_Table {
 
 	function get_sortable_columns() {
 	  $sortable_columns = array(
-	    'booktitle'  => array('booktitle',false),
-	    'author' => array('author',false),
-	    'isbn'   => array('isbn',false)
+	    'keyword'  => array('keyword',false),
+	    'title' => array('title',false),
+	    'meta_desc'   => array('meta_desc',false),
+	    'count'   => array('count',false),
+	    'add_date'   => array('add_date',false)
 	  );
 	  return $sortable_columns;
 	}
@@ -71,9 +111,12 @@ class Custom_List_Table extends WP_List_Table {
 	function get_columns(){
 	        $columns = array(
 	            'cb'        => '<input type="checkbox" />',
-	            'booktitle' => __( 'Title', 'mylisttable' ),
-	            'author'    => __( 'Author', 'mylisttable' ),
-	            'isbn'      => __( 'ISBN', 'mylisttable' )
+	            'keyword' => __( 'Keyword', 'mylisttable' ),
+	            'title'    => __( 'Title', 'mylisttable' ),
+	            'meta_desc'      => __( 'Meta Description', 'mylisttable' ),
+	            'author'      => __( 'Author', 'mylisttable' ),
+	            'count'      => __( 'Results count', 'mylisttable' ),
+	            'add_date'      => __( 'Date', 'mylisttable' ),
 	        );
 	         return $columns;
 	    }
@@ -89,13 +132,22 @@ class Custom_List_Table extends WP_List_Table {
 	  return ( $order === 'asc' ) ? $result : -$result;
 	}
 
-	function column_booktitle($item){
+	function column_keyword($item){
+		$delete_nonce = wp_create_nonce( 'cs_delete_record' );
 	  $actions = array(
-	            'edit'      => sprintf('<a href="?page=%s&action=%s&book=%s">Edit</a>',$_REQUEST['page'],'edit',$item['ID']),
-	            'delete'    => sprintf('<a href="?page=%s&action=%s&book=%s">Delete</a>',$_REQUEST['page'],'delete',$item['ID']),
+	            'edit'      => sprintf('<a href="?page=%s&action=%s&id=%s">Edit</a>','new-search-page','edit',$item['id']),
+	            'delete' => sprintf( '<a href="?page=%s&action=%s&searchId=%s&_wpnonce=%s">Delete</a>', esc_attr( $_REQUEST['page'] ), 'delete', absint( $item['id'] ), $delete_nonce )
 	        );
 
-	  return sprintf('%1$s %2$s', $item['booktitle'], $this->row_actions($actions) );
+	  return sprintf('%1$s %2$s', $item['keyword'], $this->row_actions($actions) );
+	}
+	function column_author($item){
+		$author_obj = get_user_by('id', $item['author']);
+	  return '<a href="user-edit.php?user_id='.$item['author'].'">'.$author_obj->user_login.'</a>';
+	}
+	function column_add_date($item){
+		$date=date_create($item['add_date']);
+	  return 'Published'.'<br>'.'<abbr title="'.date_format($date,"Y/m/d H:i:s A").'">'.date_format($date,"Y/m/d ").'</abbr>';
 	}
 
 	function get_bulk_actions() {
@@ -107,7 +159,7 @@ class Custom_List_Table extends WP_List_Table {
 
 	function column_cb($item) {
 	        return sprintf(
-	            '<input type="checkbox" name="book[]" value="%s" />', $item['ID']
+	            '<input type="checkbox" name="search[]" value="%s" />', $item['id']
 	        );    
 	    }
 
@@ -116,20 +168,64 @@ class Custom_List_Table extends WP_List_Table {
 	  $hidden   = array();
 	  $sortable = $this->get_sortable_columns();
 	  $this->_column_headers = array( $columns, $hidden, $sortable );
-	  usort( $this->example_data, array( &$this, 'usort_reorder' ) );
-	  
-	  $per_page = 5;
+	  //usort( $this->example_data, array( &$this, 'usort_reorder' ) );
+	  /** Process bulk action */
+	  $this->process_bulk_action();
+	  $per_page = 10;
 	  $current_page = $this->get_pagenum();
-	   $total_items = count( $this->example_data );
+	   $total_items = self::record_count();
 
 	  // only ncessary because we have sample data
-	  $found_data = array_slice( $this->example_data,( ( $current_page-1 )* $per_page ), $per_page );
+	  //$found_data = array_slice( $this->example_data,( ( $current_page-1 )* $per_page ), $per_page );
 
 	  $this->set_pagination_args( array(
 	    'total_items' => $total_items,                  //WE have to calculate the total number of items
 	    'per_page'    => $per_page                     //WE have to determine how many items to show on a page
 	  ) );
-	  $this->items = $found_data;
+	  //$this->items = $found_data;
+	  $this->items = self::get_records( $per_page, $current_page );
+	}
+	
+	public function process_bulk_action() {
+
+		//Detect when a bulk action is being triggered...
+		if ( 'delete' === $this->current_action() ) {
+
+			// In our file that handles the request, verify the nonce.
+			$nonce = esc_attr( $_REQUEST['_wpnonce'] );
+
+			if ( ! wp_verify_nonce( $nonce, 'cs_delete_record' ) ) {
+				die( 'Go get a life script kiddies' );
+			}
+			else {
+				self::delete_customer( absint( $_GET['searchId'] ) );
+
+		                // esc_url_raw() is used to prevent converting ampersand in url to "#038;"
+		                // add_query_arg() return the current url
+		                wp_redirect( esc_url_raw(add_query_arg()) );
+				exit;
+			}
+
+		}
+
+		// If the delete bulk action is triggered
+		if ( ( isset( $_POST['action'] ) && $_POST['action'] == 'bulk-delete' )
+		     || ( isset( $_POST['action2'] ) && $_POST['action2'] == 'bulk-delete' )
+		) {
+
+			$delete_ids = esc_sql( $_POST['bulk-delete'] );
+
+			// loop over the array of record IDs and delete them
+			foreach ( $delete_ids as $id ) {
+				self::delete_record( $id );
+
+			}
+
+			// esc_url_raw() is used to prevent converting ampersand in url to "#038;"
+		        // add_query_arg() return the current url
+		        wp_redirect( esc_url_raw(add_query_arg()) );
+			exit;
+		}
 	}
 
 }

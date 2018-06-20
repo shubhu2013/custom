@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `wp_search_forms` (
   `text_before` longtext NOT NULL,
   `text_after` longtext NOT NULL,
   `active_ingredient` enum('0','1') NOT NULL DEFAULT '0',
+  `author` int(11) NOT NULL,
   `add_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;

@@ -39,6 +39,7 @@ if(isset($_POST['submit_page'])) {
             'text_before' => $text_before,
             'text_after' => $text_after,
             'active_ingredient' => $active_ingredient,
+            'author' => get_current_user_id(),
         );
 
          if($wpdb->insert($table,$data)){
