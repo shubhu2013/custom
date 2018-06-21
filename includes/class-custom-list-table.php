@@ -8,8 +8,8 @@ class Custom_List_Table extends WP_List_Table {
     global $status, $page;
 
         parent::__construct( array(
-            'singular'  => __( 'search form', 'mylisttable' ),     //singular name of the listed records
-            'plural'    => __( 'search forms', 'mylisttable' ),   //plural name of the listed records
+            'singular'  => __( 'search form', 'custom-search' ),     //singular name of the listed records
+            'plural'    => __( 'search forms', 'custom-search' ),   //plural name of the listed records
             'ajax'      => false        //does this table support ajax?
 
     ) );
@@ -111,12 +111,12 @@ class Custom_List_Table extends WP_List_Table {
 	function get_columns(){
 	        $columns = array(
 	            'cb'        => '<input type="checkbox" />',
-	            'keyword' => __( 'Keyword', 'mylisttable' ),
-	            'title'    => __( 'Title', 'mylisttable' ),
-	            'meta_desc'      => __( 'Meta Description', 'mylisttable' ),
-	            'author'      => __( 'Author', 'mylisttable' ),
-	            'count'      => __( 'Results count', 'mylisttable' ),
-	            'add_date'      => __( 'Date', 'mylisttable' ),
+	            'keyword' => __( 'Keyword', 'custom-search' ),
+	            'title'    => __( 'Title', 'custom-search' ),
+	            'meta_desc'      => __( 'Meta Description', 'custom-search' ),
+	            'author'      => __( 'Author', 'custom-search' ),
+	            'count'      => __( 'Results count', 'custom-search' ),
+	            'add_date'      => __( 'Date', 'custom-search' ),
 	        );
 	         return $columns;
 	    }
@@ -150,11 +150,17 @@ class Custom_List_Table extends WP_List_Table {
 	  return 'Published'.'<br>'.'<abbr title="'.date_format($date,"Y/m/d H:i:s A").'">'.date_format($date,"Y/m/d ").'</abbr>';
 	}
 
-	function get_bulk_actions() {
-	  $actions = array(
-	    'delete'    => 'Delete'
-	  );
-	  return $actions;
+	/**
+	 * Returns an associative array containing the bulk action
+	 *
+	 * @return array
+	 */
+	public function get_bulk_actions() {
+		$actions = [
+			'bulk-delete' => 'Delete'
+		];
+
+		return $actions;
 	}
 
 	function column_cb($item) {
