@@ -159,7 +159,7 @@ class Custom_List_Table extends WP_List_Table {
 
 	function column_cb($item) {
 	        return sprintf(
-	            '<input type="checkbox" name="search[]" value="%s" />', $item['id']
+	            '<input type="checkbox" name="bulk-delete[]" value="%s" />', $item['id']
 	        );    
 	    }
 
@@ -193,17 +193,14 @@ class Custom_List_Table extends WP_List_Table {
 
 			// In our file that handles the request, verify the nonce.
 			$nonce = esc_attr( $_REQUEST['_wpnonce'] );
-
 			if ( ! wp_verify_nonce( $nonce, 'cs_delete_record' ) ) {
 				die( 'Go get a life script kiddies' );
 			}
 			else {
-				self::delete_customer( absint( $_GET['searchId'] ) );
-
-		                // esc_url_raw() is used to prevent converting ampersand in url to "#038;"
-		                // add_query_arg() return the current url
-		                wp_redirect( esc_url_raw(add_query_arg()) );
-				exit;
+				self::delete_record( absint( $_GET['searchId'] ) );
+				 $this->cs_add_notice2("Form deleted Successfully",'note');
+             	 wp_redirect("admin.php?page=search-pages");
+				 exit;
 			}
 
 		}
@@ -221,11 +218,41 @@ class Custom_List_Table extends WP_List_Table {
 
 			}
 
-			// esc_url_raw() is used to prevent converting ampersand in url to "#038;"
-		        // add_query_arg() return the current url
-		        wp_redirect( esc_url_raw(add_query_arg()) );
-			exit;
+			 $this->cs_add_notice2("Form deleted Successfully",'note');
+         	 wp_redirect("admin.php?page=search-pages");
+			 exit;
 		}
+	}
+	public function cs_add_notice2($notice, $type = 'error')
+	{
+		$types = array(
+			'error' => 'error',
+			'warning' => 'update-nag',
+			'info' => 'check-column',
+			'note' => 'updated',
+			'none' => '',
+		);
+		if (!array_key_exists($type, $types))
+			$type = 'none';
+
+		$notice_data = array('class' => $types[$type], 'message' => $notice);
+
+		$key = 'cs_admin_notices_' . get_current_user_id();
+		$notices = get_transient($key);
+
+		if (FALSE === $notices)
+			$notices = array($notice_data);
+
+		// only add the message if it's not already there
+		$found = FALSE;
+		foreach ($notices as $notice) {
+			if ($notice_data['message'] === $notice['message'])
+				$found = TRUE;
+		}
+		if (!$found)
+			$notices[] = $notice_data;
+
+		set_transient($key, $notices, 3600);
 	}
 
 }
