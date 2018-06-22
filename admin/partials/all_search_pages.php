@@ -27,8 +27,8 @@
              <?php
               $myListTable = new Custom_List_Table();
 		          $myListTable->prepare_items(); ?>
-              <form method="post">
-                <input type="hidden" name="page" value="ttest_list_table">
+              <form method="get">
+              <input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" /> 
                 <?php
                 $myListTable->search_box( 'search', 'search_id' );
               $myListTable->display(); 

@@ -34,9 +34,14 @@ class Custom_List_Table extends WP_List_Table {
   public static function get_records( $per_page = 10, $page_number = 1 ) {
 
 		global $wpdb;
-
+		$search = ( isset( $_REQUEST['s'] ) ) ? $_REQUEST['s'] : false;
+	 // var_dump($search);
 		$sql = "SELECT * FROM {$wpdb->prefix}search_forms";
-
+		$where = ' ';
+		if($search){
+			$where = " WHERE keyword LIKE '%".$search."%' OR count LIKE '%".$search."%' OR title LIKE '%".$search."%' OR meta_desc LIKE '%".$search."%' OR text_before LIKE '%".$search."%' OR text_after LIKE '%".$search."%' ";
+		}
+        $sql .= $where;
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
 			$sql .= ' ORDER BY ' . esc_sql( $_REQUEST['orderby'] );
 			$sql .= ! empty( $_REQUEST['order'] ) ? ' ' . esc_sql( $_REQUEST['order'] ) : ' ASC';
@@ -47,8 +52,9 @@ class Custom_List_Table extends WP_List_Table {
 		$sql .= " LIMIT $per_page";
 		$sql .= ' OFFSET ' . ( $page_number - 1 ) * $per_page;
 
-
+		//echo $sql;
 		$result = $wpdb->get_results( $sql, 'ARRAY_A' );
+		
 
 		return $result;
 	}
@@ -189,6 +195,7 @@ class Custom_List_Table extends WP_List_Table {
 	    'per_page'    => $per_page                     //WE have to determine how many items to show on a page
 	  ) );
 	  //$this->items = $found_data;
+	  
 	  $this->items = self::get_records( $per_page, $current_page );
 	}
 	
