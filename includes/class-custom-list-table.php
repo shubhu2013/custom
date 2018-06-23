@@ -31,11 +31,13 @@ class Custom_List_Table extends WP_List_Table {
     echo '</style>';
   }
   
-  public static function get_records( $per_page = 10, $page_number = 1 ) {
-
+  public static function get_records( $per_page, $page_number = 1 ) {
+  		
+		//echo $per_page;
+		// now use $per_page to set the number of items displayed
 		global $wpdb;
 		$search = ( isset( $_REQUEST['s'] ) ) ? $_REQUEST['s'] : false;
-	 // var_dump($search);
+	 	// var_dump($search);
 		$sql = "SELECT * FROM {$wpdb->prefix}search_forms";
 		$where = ' ';
 		if($search){
@@ -183,7 +185,17 @@ class Custom_List_Table extends WP_List_Table {
 	  //usort( $this->example_data, array( &$this, 'usort_reorder' ) );
 	  /** Process bulk action */
 	  $this->process_bulk_action();
-	  $per_page = 10;
+
+	  $user = get_current_user_id();
+	  $screen = get_current_screen();
+	  $option = $screen->get_option('per_page', 'option');	 
+	  $per_page = get_user_meta($user, $option, true);
+	  if ( empty ( $per_page) || $per_page < 1 ) {
+		 
+		$per_page = $screen->get_option( 'per_page', 'default' );
+		 
+	  }
+
 	  $current_page = $this->get_pagenum();
 	   $total_items = self::record_count();
 

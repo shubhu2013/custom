@@ -163,6 +163,8 @@ class Custom_Search {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'cs_admin_menu' );
 
+		$this->loader->add_filter('set-screen-option', $plugin_admin, 'cs_set_screen_option' ,10, 3);
+
 	}
 
 	/**

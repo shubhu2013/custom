@@ -100,10 +100,30 @@ class Custom_Search_Admin {
 
 	}
 	public function cs_admin_menu(){
-		
-		add_menu_page('Search Pages', 'Search Pages', 'administrator', 'search-pages',array(&$this, 'all_search_pages'),'dashicons-admin-site',5);
+		$cs_screen_page = add_menu_page('Search Pages', 'Search Pages', 'administrator', 'search-pages',array(&$this, 'all_search_pages'),'dashicons-admin-site',5);
 		 add_submenu_page( 'search-pages', 'New Search Page', 'Add New', 'administrator', 'new-search-page', array(&$this, 'add_search_page') );
+		 add_action("load-$cs_screen_page", array(&$this, 'cs_sample_screen_options'));
+
 	}
+	function cs_sample_screen_options(){
+ 
+		$screen = get_current_screen();
+		// get out of here if we are not on our settings page
+		if(!is_object($screen) || $screen->id != 'toplevel_page_search-pages')
+			return;
+	 
+		$args = array(
+			'label' => __('Search per page', $this->plugin_name),
+			'default' => 10,
+			'option' => 'search_per_page'
+		);
+		add_screen_option( 'per_page', $args );
+
+	}
+	function cs_set_screen_option($status, $option, $value) {
+		if ( 'search_per_page' == $option ) return $value;
+	}
+
 	function all_search_pages(){
 		include_once 'partials/all_search_pages.php';	
 	}
