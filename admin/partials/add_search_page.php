@@ -1,3 +1,5 @@
+<link rel='stylesheet' href='<?php echo plugins_url().'/custom-search/admin/css/select2.min.css'; ?>' type='text/css' media='all' />
+<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/select2.min.js'; ?>'></script>
 <?php
 
 /**
@@ -11,6 +13,25 @@
  * @package    Custom_Search
  * @subpackage Custom_Search/admin/partials
  */
+ 
+/**
+ * Check if WooCommerce is active
+ **/
+ 
+$products = array(); 
+if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+    $query = new WC_Product_Query( array(
+	    'limit' => -1,
+	    'orderby' => 'ID',
+	    'order' => 'ASC',
+	    'status' => 'publish',
+	    //'return' => 'ids,title',
+	) );
+	$products = $query->get_products();
+}else{
+	$this->cs_add_notice("WooCommerce Plugin is not active. Please activate.",'error');
+} 
+ 
 global $wpdb;
 $text_before ='';
 $text_after  ='';
@@ -30,6 +51,13 @@ if(isset($_POST['submit_page'])) {
          $text_before = wp_kses_post( stripslashes($_POST['text_before']));
          $text_after = wp_kses_post( stripslashes($_POST['text_after']));
          $active_ingredient =  (array_key_exists("active_ingredient",$_POST))?'1':'0';
+         
+         $per_page    = trim($_POST['cs_pro_per_page']);
+         $order_col   = trim($_POST['cs_pro_order_col']);
+         $order_by    = trim($_POST['cs_pro_order_by']);
+         $pro_lists   = $_POST['cs_pro_lists'];
+         
+         $pro_lists = maybe_serialize($pro_lists);
 
          $data = array(
             'keyword' => $keyword,
@@ -38,6 +66,10 @@ if(isset($_POST['submit_page'])) {
             'meta_desc' => $meta_desc,
             'text_before' => $text_before,
             'text_after' => $text_after,
+            'per_page' => $per_page,
+            'product_lists' => $pro_lists,
+            'order_col' => $order_col,
+            'order_by' => $order_by,
             'active_ingredient' => $active_ingredient,
             'author' => get_current_user_id(),
         );
@@ -57,6 +89,10 @@ if(isset($_POST['submit_page'])) {
         }
     }
 }
+$proLists = array();
+$perPage  = '';
+$orderCol = '';
+$orderBy  = '';
 if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
     $id = $_REQUEST['id'];
     if(!$id)
@@ -68,6 +104,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
         $results = $results[0];
         $text_before = $results['text_before'];
         $text_after  = $results['text_after'];
+        $proLists = maybe_unserialize($results['product_lists']);
     }
     //print_r($results);
 }
@@ -106,8 +143,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
                                 <label><?php _e("Count of Results", $this->plugin_name); ?> * </label>
                             </th>
                             <td>
-                                <select name="count" class='wide' required>
-                                <option value="">Select Count</option>
+                                <select name="count" class='wide select2' data-placeholder="Select count" required>
                                 <option value="5" <?php echo (!empty($results) && $results["count"]=='5') ? 'selected' :  ''; ?>>5</option>
                                 <option value="10" <?php echo (!empty($results) && $results["count"]=='10') ? 'selected' :  ''; ?>>10</option>
                                 <option value="15" <?php echo (!empty($results) && $results["count"]=='15') ? 'selected' :  ''; ?>>15</option>
@@ -135,6 +171,49 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
                               
                             </td>
                         </tr>
+                        
+                        <tr valign="top">
+                            <th scope="row">
+                                <label><?php _e("Products Per Page", $this->plugin_name); ?> </label>
+                            </th>
+                            <td>
+                                <input type="number" name="cs_pro_per_page" value='<?php echo (!empty($results)) ? $results["per_page"] : '10'; ?>' class='wide' min="1" />
+                            </td>
+                        </tr>
+
+                        <tr valign="top">
+                            <th scope="row">
+                                <label><?php _e("Exact List of Products", $this->plugin_name); ?></label>
+                            </th>
+                            <td>
+                                <select name="cs_pro_lists[]" multiple="multiple" data-placeholder="Select Product(s)" class='wide select2'>
+                                <?php foreach($products as $product){ ?>
+                                <option value="<?php echo $product->get_id();?>" <?php echo (!empty($results) && in_array($product->get_id(),$proLists)) ? 'selected' : ''; ?> ><?php echo $product->get_name();?></option>
+                                <?php } ?>              
+                                </select>
+                            </td>
+                        </tr>
+
+                        <tr valign="top">
+                            <th scope="row">
+                                <label><?php _e("Sort Product Order By", $this->plugin_name); ?>  </label>
+                                                 
+                            </th>
+                            <td>
+                                <select name="cs_pro_order_col" data-placeholder="Select Product Column" class='wide select2' style="width: 25%;">
+                                <option value="ID" <?php echo (!empty($results) && $results["order_col"]=='ID') ? 'selected' :  ''; ?> >ID</option>
+                                <option value="name" <?php echo (!empty($results) && $results["order_col"]=='name') ? 'selected' :  ''; ?>>Name</option>
+                                <option value="price" <?php echo (!empty($results) && $results["order_col"]=='price') ? 'selected' :  ''; ?>>Price</option>
+                                <option value="date" <?php echo (!empty($results) && $results["order_col"]=='date') ? 'selected' :  ''; ?>>Date</option>
+                                 </select>
+                                 
+                                 <select name="cs_pro_order_by" class='wide select2' style="width: 25%;">
+                                <option value="ASC" <?php echo (!empty($results) && $results["order_by"]=='ASC') ? 'selected' :  ''; ?>>Ascending</option>
+                                <option value="DESC" <?php echo (!empty($results) && $results["order_by"]=='DESC') ? 'selected' :  ''; ?>>Descending</option>
+                                 </select> 
+                              
+                            </td>
+                        </tr>
 
                         <tr valign="top">
                             <th scope="row">
@@ -155,6 +234,8 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
                               
                             </td>
                         </tr>
+                        
+                        
 
                         <tr valign="top">
                             <th scope="row">
@@ -178,3 +259,8 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
         </div>
     </div>        
 </div>
+<script>
+   jQuery('document').ready(function(){
+   		jQuery('.select2').select2();
+   });
+</script>

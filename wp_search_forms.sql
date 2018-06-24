@@ -45,4 +45,4 @@ CREATE TABLE IF NOT EXISTS `wp_search_forms` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 
-ALTER TABLE `wp_search_forms` CHANGE `text_after` `text_after` LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL;
+ALTER TABLE `wp_search_forms`  ADD `per_page` INT NOT NULL  AFTER `text_after`,  ADD `product_lists` TEXT NOT NULL  AFTER `per_page`,  ADD `order_col` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL  AFTER `product_lists`,  ADD `order_by` VARCHAR(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL  AFTER `order_col`;

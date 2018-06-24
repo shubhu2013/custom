@@ -102,7 +102,7 @@ class Custom_Search_Admin {
 	public function cs_admin_menu(){
 		$cs_screen_page = add_menu_page('Search Pages', 'Search Pages', 'administrator', 'search-pages',array(&$this, 'all_search_pages'),'dashicons-admin-site',5);
 		 add_submenu_page( 'search-pages', 'New Search Page', 'Add New', 'administrator', 'new-search-page', array(&$this, 'add_search_page') );
-		 add_submenu_page( 'search-pages', 'Options Page', 'Options', 'administrator', 'option-page', array(&$this, 'option_search_page') );
+		 //add_submenu_page( 'search-pages', 'Options Page', 'Options', 'administrator', 'option-page', array(&$this, 'option_search_page') );
 		 add_action("load-$cs_screen_page", array(&$this, 'cs_sample_screen_options'));
 
 	}
