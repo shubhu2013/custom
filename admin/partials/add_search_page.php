@@ -81,7 +81,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
 
 	<div id="poststuff" class="">
         <div id="post-body">
-          <h1 class="wp-heading-inline">Add New Search Page</h1>
+          <h1 class="wp-heading-inline">Search Page Detail</h1>
             <div id="post-body-content">
             	<form method="post" id="reg_form" action="<?php echo str_replace('%7E', '~', $_SERVER['REQUEST_URI']); ?>">
                     <?php
