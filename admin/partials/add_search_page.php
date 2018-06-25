@@ -1,5 +1,27 @@
 <link rel='stylesheet' href='<?php echo plugins_url().'/custom-search/admin/css/select2.min.css'; ?>' type='text/css' media='all' />
+<link rel='stylesheet' href='<?php echo plugins_url().'/custom-search/admin/css/multi-select.css'; ?>' type='text/css' media='all' />
 <script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/select2.min.js'; ?>'></script>
+<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.multi-select.js'; ?>'></script>
+<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.quicksearch.js'; ?>'></script>
+<style type="text/css">
+.ms-container .ms-selection {
+    float: right;
+    width: 200px;
+}
+.ms-container{
+  width: 445px;
+}
+.ms-container .ms-selection li.ms-elem-selection{
+  width: 120px;
+}
+input[type=number] {
+    height: 22px;
+    line-height: 1;
+    width: 50px;
+    float: right;
+    margin-top: -27px;
+}
+</style>
 <?php
 
 /**
@@ -43,7 +65,7 @@ if(isset($_POST['submit_page'])) {
        exit;
 
     } else {
-         //print_r($_POST);
+         print_r($_POST);die;
          $keyword = trim($_POST['keyword']);
          $count   = trim($_POST['count']);
          $title   = trim($_POST['title']);
@@ -172,48 +194,6 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
                             </td>
                         </tr>
                         
-                        <tr valign="top">
-                            <th scope="row">
-                                <label><?php _e("Products Per Page", $this->plugin_name); ?> </label>
-                            </th>
-                            <td>
-                                <input type="number" name="cs_pro_per_page" value='<?php echo (!empty($results)) ? $results["per_page"] : '10'; ?>' class='wide' min="1" />
-                            </td>
-                        </tr>
-
-                        <tr valign="top">
-                            <th scope="row">
-                                <label><?php _e("Exact List of Products", $this->plugin_name); ?></label>
-                            </th>
-                            <td>
-                                <select name="cs_pro_lists[]" multiple="multiple" data-placeholder="Select Product(s)" class='wide select2'>
-                                <?php foreach($products as $product){ ?>
-                                <option value="<?php echo $product->get_id();?>" <?php echo (!empty($results) && in_array($product->get_id(),$proLists)) ? 'selected' : ''; ?> ><?php echo $product->get_name();?></option>
-                                <?php } ?>              
-                                </select>
-                            </td>
-                        </tr>
-
-                        <tr valign="top">
-                            <th scope="row">
-                                <label><?php _e("Sort Product Order By", $this->plugin_name); ?>  </label>
-                                                 
-                            </th>
-                            <td>
-                                <select name="cs_pro_order_col" data-placeholder="Select Product Column" class='wide select2' style="width: 25%;">
-                                <option value="ID" <?php echo (!empty($results) && $results["order_col"]=='ID') ? 'selected' :  ''; ?> >ID</option>
-                                <option value="name" <?php echo (!empty($results) && $results["order_col"]=='name') ? 'selected' :  ''; ?>>Name</option>
-                                <option value="price" <?php echo (!empty($results) && $results["order_col"]=='price') ? 'selected' :  ''; ?>>Price</option>
-                                <option value="date" <?php echo (!empty($results) && $results["order_col"]=='date') ? 'selected' :  ''; ?>>Date</option>
-                                 </select>
-                                 
-                                 <select name="cs_pro_order_by" class='wide select2' style="width: 25%;">
-                                <option value="ASC" <?php echo (!empty($results) && $results["order_by"]=='ASC') ? 'selected' :  ''; ?>>Ascending</option>
-                                <option value="DESC" <?php echo (!empty($results) && $results["order_by"]=='DESC') ? 'selected' :  ''; ?>>Descending</option>
-                                 </select> 
-                              
-                            </td>
-                        </tr>
 
                         <tr valign="top">
                             <th scope="row">
@@ -246,6 +226,21 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
                             </td>
                         </tr>
 
+                        <tr valign="top">
+                            <th scope="row">
+                                <label><?php _e("Exact List of Products", $this->plugin_name); ?></label>
+                            </th>
+                            <td>
+                             <!--  <a href='#' id='select-all'>Select all</a>&nbsp;&nbsp;&nbsp;
+                              <a href='#' id='deselect-all'>Deselect all</a><br><br> -->
+                                <select name="cs_pro_lists[]" multiple="multiple" id="multiSelect" class='wide'>
+                                <?php foreach($products as $product){ ?>
+                                <option id="<?php echo $product->get_id();?>" value="<?php echo $product->get_id();?>" <?php echo (!empty($results) && in_array($product->get_id(),$proLists)) ? 'selected' : ''; ?> ><?php echo $product->get_name();?></option>
+                                <?php } ?>              
+                                </select>
+                            </td>
+                        </tr>
+
                     </table>
 
 
@@ -261,6 +256,57 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
 </div>
 <script>
    jQuery('document').ready(function(){
+
    		jQuery('.select2').select2();
+
+     jQuery('#multiSelect').multiSelect({
+        selectableHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='Search here.' style='width:198px;'>",
+        selectionHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='Search here.' style='width:198px;'>",
+        keepOrder: true ,
+        afterInit: function(ms){
+          var that = this,
+              $selectableSearch = that.$selectableUl.prev(),
+              $selectionSearch = that.$selectionUl.prev(),
+              selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)',
+              selectionSearchString = '#'+that.$container.attr('id')+' .ms-elem-selection.ms-selected';
+
+          that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
+          .on('keydown', function(e){
+            if (e.which === 40){
+              that.$selectableUl.focus();
+              return false;
+            }
+          });
+
+          that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
+          .on('keydown', function(e){
+            if (e.which == 40){
+              that.$selectionUl.focus();
+              return false;
+            }
+          });
+        },
+        afterSelect: function(values){
+          this.qs1.cache();
+          this.qs2.cache();
+          console.log(values[0]);
+          console.log(this.$selectableUl);
+
+        },
+        afterDeselect: function(values){
+          this.qs1.cache();
+          this.qs2.cache();
+          console.log(values[0]);
+        }
+      });
+
+    /*  jQuery('#select-all').click(function(){
+        jQuery('#multiSelect').multiSelect('select_all');
+        return false;
+      });
+      jQuery('#deselect-all').click(function(){
+        jQuery('#multiSelect').multiSelect('deselect_all');
+        return false;
+      });*/
    });
 </script>
