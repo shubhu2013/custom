@@ -126,6 +126,8 @@
         .addClass('ms-elem-selection')
         .attr('id', elementId+'-selection')
         .hide();
+        
+      //selectedLi.after('<input name="order[]" type="number" class="select-'+elementId+'">');
 
       if ($option.prop('disabled') || ms.prop('disabled')){
         selectedLi.addClass(that.options.disabledClass);

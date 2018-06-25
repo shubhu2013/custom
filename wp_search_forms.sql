@@ -26,23 +26,37 @@ SET time_zone = "+00:00";
 -- Table structure for table `wp_search_forms`
 --
 
-CREATE TABLE IF NOT EXISTS `wp_search_forms` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `keyword` varchar(200) NOT NULL,
+CREATE TABLE `wp_search_forms` (
+  `id` int(11) NOT NULL,
+  `keyword` varchar(200) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `count` int(11) NOT NULL,
-  `title` varchar(200) NOT NULL,
-  `meta_desc` varchar(200) NOT NULL,
-  `text_before` longtext NOT NULL,
-  `text_after` longtext NOT NULL,
-  `active_ingredient` enum('0','1') NOT NULL DEFAULT '0',
+  `title` varchar(200) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `meta_desc` varchar(200) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `text_before` longtext COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `text_after` longtext COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `product_lists` text COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `active_ingredient` enum('0','1') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '0',
   `author` int(11) NOT NULL,
-  `add_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci AUTO_INCREMENT=1 ;
+  `add_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+--
+-- Indexes for dumped tables
+--
 
+--
+-- Indexes for table `wp_search_forms`
+--
+ALTER TABLE `wp_search_forms`
+  ADD PRIMARY KEY (`id`);
 
-ALTER TABLE `wp_search_forms`  ADD `per_page` INT NOT NULL  AFTER `text_after`,  ADD `product_lists` TEXT NOT NULL  AFTER `per_page`,  ADD `order_col` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL  AFTER `product_lists`,  ADD `order_by` VARCHAR(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL  AFTER `order_col`;
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `wp_search_forms`
+--
+ALTER TABLE `wp_search_forms`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+

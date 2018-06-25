@@ -1,25 +1,48 @@
 <link rel='stylesheet' href='<?php echo plugins_url().'/custom-search/admin/css/select2.min.css'; ?>' type='text/css' media='all' />
 <link rel='stylesheet' href='<?php echo plugins_url().'/custom-search/admin/css/multi-select.css'; ?>' type='text/css' media='all' />
 <script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/select2.min.js'; ?>'></script>
-<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.multi-select.js'; ?>'></script>
-<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.quicksearch.js'; ?>'></script>
+<!--<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.multi-select.js'; ?>'></script>
+<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.quicksearch.js'; ?>'></script>-->
 <style type="text/css">
 .ms-container .ms-selection {
     float: right;
-    width: 200px;
+    width: 309px;
+}
+.ms-container .ms-selectable {
+    width: 45%;
 }
 .ms-container{
-  width: 445px;
+  width: 700px;
 }
 .ms-container .ms-selection li.ms-elem-selection{
-  width: 120px;
+  width: 215px;
 }
 input[type=number] {
-    height: 22px;
+    height: 30px;
     line-height: 1;
-    width: 50px;
+    width: 70px;
     float: right;
-    margin-top: -27px;
+    margin-top: -54px;
+}
+.select-header{
+	text-align: center;
+    font-size: 16px;
+    float: right;
+    font-weight: 700;
+}
+.clearfix{
+	clear:both;
+}
+.ms-container .ms-list{
+	height: 400px;
+}
+img.pro-image{
+	width:50px;
+	vertical-align: middle;
+}
+.ms-container .ms-selectable li.ms-elem-selectable:hover, .ms-container .ms-selection li.ms-elem-selection:hover{
+	cursor: pointer;
+	background-color: #9999994a;
 }
 </style>
 <?php
@@ -65,7 +88,16 @@ if(isset($_POST['submit_page'])) {
        exit;
 
     } else {
-         print_r($_POST);die;
+         //print_r($_POST);
+         $pro_array = array();
+         foreach($products as $pid){
+		  $order =	$_POST['order-'.$pid->get_id()];
+		  if($order!=''){
+		    $pro_array[$pid->get_id()] = $order;
+		  }
+		 }
+		/*print_r($pro_array);
+		die;*/
          $keyword = trim($_POST['keyword']);
          $count   = trim($_POST['count']);
          $title   = trim($_POST['title']);
@@ -74,12 +106,7 @@ if(isset($_POST['submit_page'])) {
          $text_after = wp_kses_post( stripslashes($_POST['text_after']));
          $active_ingredient =  (array_key_exists("active_ingredient",$_POST))?'1':'0';
          
-         $per_page    = trim($_POST['cs_pro_per_page']);
-         $order_col   = trim($_POST['cs_pro_order_col']);
-         $order_by    = trim($_POST['cs_pro_order_by']);
-         $pro_lists   = $_POST['cs_pro_lists'];
-         
-         $pro_lists = maybe_serialize($pro_lists);
+         $pro_lists = maybe_serialize($pro_array);
 
          $data = array(
             'keyword' => $keyword,
@@ -88,10 +115,7 @@ if(isset($_POST['submit_page'])) {
             'meta_desc' => $meta_desc,
             'text_before' => $text_before,
             'text_after' => $text_after,
-            'per_page' => $per_page,
             'product_lists' => $pro_lists,
-            'order_col' => $order_col,
-            'order_by' => $order_by,
             'active_ingredient' => $active_ingredient,
             'author' => get_current_user_id(),
         );
@@ -112,9 +136,6 @@ if(isset($_POST['submit_page'])) {
     }
 }
 $proLists = array();
-$perPage  = '';
-$orderCol = '';
-$orderBy  = '';
 if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
     $id = $_REQUEST['id'];
     if(!$id)
@@ -128,7 +149,9 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
         $text_after  = $results['text_after'];
         $proLists = maybe_unserialize($results['product_lists']);
     }
-    //print_r($results);
+    print_r($proLists);
+    
+    
 }
 
 ?>
@@ -228,16 +251,41 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
 
                         <tr valign="top">
                             <th scope="row">
-                                <label><?php _e("Exact List of Products", $this->plugin_name); ?></label>
+                                <label><?php _e("Select Products to be included", $this->plugin_name); ?></label>
                             </th>
                             <td>
-                             <!--  <a href='#' id='select-all'>Select all</a>&nbsp;&nbsp;&nbsp;
-                              <a href='#' id='deselect-all'>Deselect all</a><br><br> -->
-                                <select name="cs_pro_lists[]" multiple="multiple" id="multiSelect" class='wide'>
-                                <?php foreach($products as $product){ ?>
-                                <option id="<?php echo $product->get_id();?>" value="<?php echo $product->get_id();?>" <?php echo (!empty($results) && in_array($product->get_id(),$proLists)) ? 'selected' : ''; ?> ><?php echo $product->get_name();?></option>
-                                <?php } ?>              
-                                </select>
+                                
+                                <div class="ms-container" id="ms-multiSelect">
+                                <div class="ms-selectable">
+                                <span class="select-header">Include</span><div class="clearfix"></div>
+                                <ul class="ms-list" tabindex="-1">
+                                <?php foreach($products as $product){ 
+                                
+                                $order =  (array_key_exists($product->get_id(),$proLists))? $proLists[$product->get_id()]:false;
+                                ?>
+                                <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selectable" class="ms-elem-selectable" <?php echo (!empty($results) && $order)? 'style=display:none;':''; ?>>
+                                <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
+                                <?php echo $product->get_name();?></li>
+                                <?php } ?>
+                               
+                                </ul>
+                                </div>
+                                
+                                <div class="ms-selection">
+                                <span class="select-header">Sort Order</span>
+                                <div class="clearfix"></div>
+                                <ul class="ms-list" tabindex="-1">
+                                <?php foreach($products as $product){ 
+                                $order =  (array_key_exists($product->get_id(),$proLists))? $proLists[$product->get_id()]:false;
+                                ?>
+                                <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selection" class="ms-elem-selection" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?>>
+                                <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
+                                <?php echo $product->get_name();?></li>
+                                <input type="number" min="1" class="order-<?php echo $product->get_id();?>" name="order-<?php echo $product->get_id();?>" value="<?php echo (!empty($results) && $order)? $order:''; ?>" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?> />
+                                <?php } ?>
+                                </ul>
+                                </div>
+                                </div>
                             </td>
                         </tr>
 
@@ -259,9 +307,9 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
 
    		jQuery('.select2').select2();
 
-     jQuery('#multiSelect').multiSelect({
-        selectableHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='Search here.' style='width:198px;'>",
-        selectionHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='Search here.' style='width:198px;'>",
+     /*jQuery('#multiSelect').multiSelect({
+        selectableHeader: "<span class='select-header'>Include</span><div class='clearfix'></div>",
+        selectionHeader: "<span class='select-header'>Sort Order</span><div class='clearfix'></div>",
         keepOrder: true ,
         afterInit: function(ms){
           var that = this,
@@ -290,15 +338,20 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
           this.qs1.cache();
           this.qs2.cache();
           console.log(values[0]);
-          console.log(this.$selectableUl);
+          //console.log(this.$selectableUl);
+          setTimeout(function(){
+          	//jQuery("li#"+values[0]+"-selection").after('<input name="order[]" type="number" class="select-'+values[0]+'">');
+          },500);
+          
 
         },
         afterDeselect: function(values){
           this.qs1.cache();
           this.qs2.cache();
           console.log(values[0]);
+          jQuery('.select-'+values[0]+'').remove();
         }
-      });
+      });*/
 
     /*  jQuery('#select-all').click(function(){
         jQuery('#multiSelect').multiSelect('select_all');
@@ -308,5 +361,28 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
         jQuery('#multiSelect').multiSelect('deselect_all');
         return false;
       });*/
+      jQuery(".ms-elem-selectable").on('click',function(){
+      	var ele_id = jQuery(this).data('id');
+      	console.log(ele_id);
+      	jQuery("#"+ele_id+"-selection").show();
+      	jQuery(".order-"+ele_id).attr('required','required');
+      	jQuery(".order-"+ele_id).val('');
+      	jQuery(".order-"+ele_id).show();
+      	jQuery(this).hide();
+      	//jQuery('#multiSelect').val(ele_id);
+      });
+      
+      jQuery(".ms-elem-selection").on('click',function(){
+      	var ele_id = jQuery(this).data('id');
+      	console.log(ele_id);
+      	jQuery("#"+ele_id+"-selectable").show();
+      	jQuery(".order-"+ele_id).hide();
+      	jQuery(".order-"+ele_id).removeAttr('required');
+      	jQuery(".order-"+ele_id).val('');
+      	jQuery(this).hide();
+      	//jQuery('#multiSelect').val(ele_id);
+      });
+      
+      
    });
 </script>
