@@ -213,6 +213,7 @@ class Custom_List_Table extends WP_List_Table {
 	
 	public function process_bulk_action() {
 
+
 		//Detect when a bulk action is being triggered...
 		if ( 'delete' === $this->current_action() ) {
 
@@ -229,13 +230,16 @@ class Custom_List_Table extends WP_List_Table {
 			}
 
 		}
+		//print_r($_GET);
 
 		// If the delete bulk action is triggered
-		if ( ( isset( $_POST['action'] ) && $_POST['action'] == 'bulk-delete' )
-		     || ( isset( $_POST['action2'] ) && $_POST['action2'] == 'bulk-delete' )
+		if ( ( isset( $_GET['action'] ) && $_GET['action'] == 'bulk-delete' )
+		     || ( isset( $_GET['action2'] ) && $_GET['action2'] == 'bulk-delete' )
 		) {
 
-			$delete_ids = esc_sql( $_POST['bulk-delete'] );
+			$delete_ids = esc_sql( $_GET['bulk-delete'] );
+
+
 
 			// loop over the array of record IDs and delete them
 			foreach ( $delete_ids as $id ) {

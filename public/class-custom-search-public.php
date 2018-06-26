@@ -99,5 +99,17 @@ class Custom_Search_Public {
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/custom-search-public.js', array( 'jquery' ), $this->version, false );
 
 	}
+	function cs_add_query_vars($vars){
+		$vars[] = "sk";
+    	return $vars;
+	}
+	public function cs_url_rewrite_templates(){
+      var_dump(get_query_var( 'sk' ));
+		/*if ( get_query_var( 's' ) ) {
+	        add_filter( 'template_include', function() {
+	            return get_template_directory() . '/single-movie-image.php';
+	        });
+    	}*/
+	}
 
 }

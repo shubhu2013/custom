@@ -22,7 +22,7 @@ input[type=number] {
     line-height: 1;
     width: 70px;
     float: right;
-    margin-top: -54px;
+    margin-top: -39px;
 }
 .select-header{
 	text-align: center;
@@ -149,7 +149,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
         $text_after  = $results['text_after'];
         $proLists = maybe_unserialize($results['product_lists']);
     }
-    print_r($proLists);
+   // print_r($proLists);
     
     
 }
@@ -307,52 +307,6 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
 
    		jQuery('.select2').select2();
 
-     /*jQuery('#multiSelect').multiSelect({
-        selectableHeader: "<span class='select-header'>Include</span><div class='clearfix'></div>",
-        selectionHeader: "<span class='select-header'>Sort Order</span><div class='clearfix'></div>",
-        keepOrder: true ,
-        afterInit: function(ms){
-          var that = this,
-              $selectableSearch = that.$selectableUl.prev(),
-              $selectionSearch = that.$selectionUl.prev(),
-              selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)',
-              selectionSearchString = '#'+that.$container.attr('id')+' .ms-elem-selection.ms-selected';
-
-          that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
-          .on('keydown', function(e){
-            if (e.which === 40){
-              that.$selectableUl.focus();
-              return false;
-            }
-          });
-
-          that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
-          .on('keydown', function(e){
-            if (e.which == 40){
-              that.$selectionUl.focus();
-              return false;
-            }
-          });
-        },
-        afterSelect: function(values){
-          this.qs1.cache();
-          this.qs2.cache();
-          console.log(values[0]);
-          //console.log(this.$selectableUl);
-          setTimeout(function(){
-          	//jQuery("li#"+values[0]+"-selection").after('<input name="order[]" type="number" class="select-'+values[0]+'">');
-          },500);
-          
-
-        },
-        afterDeselect: function(values){
-          this.qs1.cache();
-          this.qs2.cache();
-          console.log(values[0]);
-          jQuery('.select-'+values[0]+'').remove();
-        }
-      });*/
-
     /*  jQuery('#select-all').click(function(){
         jQuery('#multiSelect').multiSelect('select_all');
         return false;
@@ -369,7 +323,6 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
       	jQuery(".order-"+ele_id).val('');
       	jQuery(".order-"+ele_id).show();
       	jQuery(this).hide();
-      	//jQuery('#multiSelect').val(ele_id);
       });
       
       jQuery(".ms-elem-selection").on('click',function(){
@@ -380,7 +333,6 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
       	jQuery(".order-"+ele_id).removeAttr('required');
       	jQuery(".order-"+ele_id).val('');
       	jQuery(this).hide();
-      	//jQuery('#multiSelect').val(ele_id);
       });
       
       
