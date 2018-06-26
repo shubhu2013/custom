@@ -18,11 +18,11 @@
   width: 215px;
 }
 input[type=number] {
-    height: 30px;
+    height: 36px;
     line-height: 1;
-    width: 70px;
+    width: 50px;
     float: right;
-    margin-top: -39px;
+    margin-top: -52px;
 }
 .select-header{
 	text-align: center;
@@ -40,9 +40,14 @@ img.pro-image{
 	width:50px;
 	vertical-align: middle;
 }
-.ms-container .ms-selectable li.ms-elem-selectable:hover, .ms-container .ms-selection li.ms-elem-selection:hover{
+.ms-container .ms-selectable li.ms-elem-selectable:hover{
 	cursor: pointer;
 	background-color: #9999994a;
+	
+}
+.ms-container .ms-selection li.ms-elem-selection:hover{
+	cursor: pointer;
+	background: transparent url('<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png') no-repeat 100% 50%;
 }
 </style>
 <?php
@@ -152,6 +157,12 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
    // print_r($proLists);
     
     
+}
+
+function get_product_name($product_id,$name){
+	
+	return  (get_post_meta($product_id,'en_productname',true)) ? get_post_meta($product_id,'en_productname',true):$name;
+	
 }
 
 ?>
@@ -265,7 +276,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
                                 ?>
                                 <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selectable" class="ms-elem-selectable" <?php echo (!empty($results) && $order)? 'style=display:none;':''; ?>>
                                 <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
-                                <?php echo $product->get_name();?></li>
+                                <?php echo get_product_name($product->get_id(),$product->get_name());?></li>
                                 <?php } ?>
                                
                                 </ul>
@@ -274,13 +285,13 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
                                 <div class="ms-selection">
                                 <span class="select-header">Sort Order</span>
                                 <div class="clearfix"></div>
-                                <ul class="ms-list" tabindex="-1">
+                                <ul class="ms-list" tabindex="-1" id="selectedDiv">
                                 <?php foreach($products as $product){ 
                                 $order =  (array_key_exists($product->get_id(),$proLists))? $proLists[$product->get_id()]:false;
                                 ?>
                                 <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selection" class="ms-elem-selection" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?>>
                                 <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
-                                <?php echo $product->get_name();?></li>
+                                <?php echo get_product_name($product->get_id(),$product->get_name());?></li>
                                 <input type="number" min="1" class="order-<?php echo $product->get_id();?>" name="order-<?php echo $product->get_id();?>" value="<?php echo (!empty($results) && $order)? $order:''; ?>" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?> />
                                 <?php } ?>
                                 </ul>
@@ -320,9 +331,12 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
       	console.log(ele_id);
       	jQuery("#"+ele_id+"-selection").show();
       	jQuery(".order-"+ele_id).attr('required','required');
-      	jQuery(".order-"+ele_id).val('');
+      	jQuery(".order-"+ele_id).val('1');
       	jQuery(".order-"+ele_id).show();
       	jQuery(this).hide();
+      	
+      	var elem = document.getElementById('selectedDiv');
+  		elem.scrollTop = elem.scrollHeight;
       });
       
       jQuery(".ms-elem-selection").on('click',function(){
