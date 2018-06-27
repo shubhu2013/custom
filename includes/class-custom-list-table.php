@@ -86,6 +86,12 @@ class Custom_List_Table extends WP_List_Table {
 			[ 'id' => $id ],
 			[ '%d' ]
 		);
+		
+		$wpdb->delete(
+			"{$wpdb->prefix}search_form_products",
+			[ 'form_id' => $id ],
+			[ '%d' ]
+		);
 	}
 
   function no_items() {

@@ -1,8 +1,8 @@
 <link rel='stylesheet' href='<?php echo plugins_url().'/custom-search/admin/css/select2.min.css'; ?>' type='text/css' media='all' />
 <link rel='stylesheet' href='<?php echo plugins_url().'/custom-search/admin/css/multi-select.css'; ?>' type='text/css' media='all' />
 <script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/select2.min.js'; ?>'></script>
-<!--<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.multi-select.js'; ?>'></script>
-<script type='text/javascript' src='<?php echo plugins_url().'/custom-search/admin/js/jquery.quicksearch.js'; ?>'></script>-->
+<link rel="stylesheet" href="<?php echo plugins_url(); ?>/custom-search/admin/css/bootstrap.min.css">
+<script src="<?php echo plugins_url(); ?>/custom-search/admin/js/bootstrap.min.js"></script>
 <style type="text/css">
 .ms-container .ms-selection {
     float: right;
@@ -15,14 +15,14 @@
   width: 700px;
 }
 .ms-container .ms-selection li.ms-elem-selection{
-  width: 215px;
+  width: 235px;
 }
 input[type=number] {
-    height: 36px;
+        height: 30px;
     line-height: 1;
-    width: 50px;
+    width: 42px;
     float: right;
-    margin-top: -52px;
+    margin-top: -45px;
 }
 .select-header{
 	text-align: center;
@@ -37,8 +37,16 @@ input[type=number] {
 	height: 400px;
 }
 img.pro-image{
-	width:50px;
+	width:35px;
 	vertical-align: middle;
+}img.remove-image{
+	width: 19px;
+    margin-left: 227px;
+    margin-top: -39px;
+    position: absolute;
+}
+img.remove-image:hover{
+	cursor: pointer;
 }
 .ms-container .ms-selectable li.ms-elem-selectable:hover{
 	cursor: pointer;
@@ -46,8 +54,14 @@ img.pro-image{
 	
 }
 .ms-container .ms-selection li.ms-elem-selection:hover{
-	cursor: pointer;
-	background: transparent url('<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png') no-repeat 100% 50%;
+	/*cursor: pointer;
+	background: transparent url('<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png') no-repeat 100% 50%;*/
+}
+textarea#text_before,textarea#text_after {
+    height: 200px !important;
+}
+.p-title{
+	width: 176px;
 }
 </style>
 <?php
@@ -87,22 +101,18 @@ $text_before ='';
 $text_after  ='';
 $active_ingredient = '0';
 $table = $wpdb->prefix.'search_forms';
+$productTable = $wpdb->prefix.'search_form_products';
 if(isset($_POST['submit_page'])) {
     if ( ! isset( $_POST['search_page_nonce_field'] ) || ! wp_verify_nonce( $_POST['search_page_nonce_field'], 'search_page_action' ) ) {
        print 'Sorry, your nonce did not verify.';
        exit;
 
     } else {
-         //print_r($_POST);
+         print_r($_POST);
          $pro_array = array();
-         foreach($products as $pid){
-		  $order =	$_POST['order-'.$pid->get_id()];
-		  if($order!=''){
-		    $pro_array[$pid->get_id()] = $order;
-		  }
-		 }
-		/*print_r($pro_array);
-		die;*/
+         
+		//print_r($pro_array);
+		//die;
          $keyword = trim($_POST['keyword']);
          $count   = trim($_POST['count']);
          $title   = trim($_POST['title']);
@@ -111,7 +121,7 @@ if(isset($_POST['submit_page'])) {
          $text_after = wp_kses_post( stripslashes($_POST['text_after']));
          $active_ingredient =  (array_key_exists("active_ingredient",$_POST))?'1':'0';
          
-         $pro_lists = maybe_serialize($pro_array);
+         //$pro_lists = maybe_serialize($pro_array);
 
          $data = array(
             'keyword' => $keyword,
@@ -120,17 +130,20 @@ if(isset($_POST['submit_page'])) {
             'meta_desc' => $meta_desc,
             'text_before' => $text_before,
             'text_after' => $text_after,
-            'product_lists' => $pro_lists,
+            //'product_lists' => $pro_lists,
             'active_ingredient' => $active_ingredient,
             'author' => get_current_user_id(),
         );
         if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
              $id = $_REQUEST['id'];
              $wpdb->update($table,$data, array('id' =>$id ));
+             insert_form_products($id,$_POST,$productTable,$products);
              $this->cs_add_notice("Form updated Successfully",'note');
              wp_redirect("admin.php?page=search-pages");exit;
         }else{
             if($wpdb->insert($table,$data)){
+            	$lastid = $wpdb->insert_id;
+            	insert_form_products($lastid,$_POST,$productTable,$products);
              $this->cs_add_notice("New Form Inserted Successfully",'note');
              wp_redirect("admin.php?page=search-pages");
              exit;
@@ -140,7 +153,37 @@ if(isset($_POST['submit_page'])) {
         }
     }
 }
-$proLists = array();
+function delete_form_products($form_id,$productTable){
+	global $wpdb;
+	$wpdb->delete($productTable,array('form_id'=>$form_id));
+}
+function insert_form_products($form_id,$postData,$productTable,$products){
+	global $wpdb;
+	delete_form_products($form_id,$productTable);
+	//print_r($postData);
+	//exit;
+	foreach($products as $pid){
+	  $order =	$postData['order-'.$pid->get_id()];
+	  if($order!=''){
+	    $product_name =	$postData['prodname-'.$pid->get_id()];
+	    $data = array(
+	    'form_id'       => $form_id,
+	    'product_id'    => $pid->get_id(),
+	    'name'          => $product_name,
+	    'product_order' => $order,
+	    );
+	    if($wpdb->insert($productTable,$data)){
+			echo "INsert";
+		}else{
+			echo "NOO";
+		}
+	  }
+	}
+	
+}
+
+$pro_results = array();
+$pro_ids = array();
 if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
     $id = $_REQUEST['id'];
     if(!$id)
@@ -152,13 +195,18 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
         $results = $results[0];
         $text_before = $results['text_before'];
         $text_after  = $results['text_after'];
-        $proLists = maybe_unserialize($results['product_lists']);
+        
+        $prod_sql    = "SELECT * FROM $productTable WHERE form_id='$id' ORDER BY product_order ASC";
+        $pro_results = $wpdb->get_results($prod_sql);
     }
-    print_r($proLists);
-    echo "<br>";
-    asort($proLists);
-    print_r($proLists);
-    
+   // print_r($pro_results);
+    foreach($pro_results as $pfilter){
+		$pro_ids[] = $pfilter->product_id;
+	}
+   // echo "<br>";
+    //asort($proLists);
+   // print_r($pro_ids);
+   // exit;
 }
 
 function get_product_name($product_id,$name){
@@ -251,8 +299,6 @@ function get_product_name($product_id,$name){
                             </td>
                         </tr>
                         
-                        
-
                         <tr valign="top">
                             <th scope="row">
                                 <label><?php _e("Show Active Ingredients", $this->plugin_name); ?></label>
@@ -274,11 +320,11 @@ function get_product_name($product_id,$name){
                                 <ul class="ms-list" tabindex="-1">
                                 <?php foreach($products as $product){ 
                                 
-                                $order =  (array_key_exists($product->get_id(),$proLists))? $proLists[$product->get_id()]:false;
+                                $order =  (in_array($product->get_id(),$pro_ids))? true:false;
                                 ?>
-                                <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selectable" class="ms-elem-selectable" <?php echo (!empty($results) && $order)? 'style=display:none;':''; ?>>
+                                <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selectable" class="ms-elem-selectable" <?php echo (!empty($results) && $order)? 'style=display:none;':''; ?> data-toggle="tooltip" title="<?php echo get_product_name($product->get_id(),$product->get_name()); ?>">
                                 <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
-                                <?php echo get_product_name($product->get_id(),$product->get_name());?></li>
+                                <?php echo $product->get_name();?></li>
                                 <?php } ?>
                                
                                 </ul>
@@ -290,18 +336,24 @@ function get_product_name($product_id,$name){
                                 <ul class="ms-list" tabindex="-1" id="selectedDiv">
                                 <?php 
                                 // for soring order with ascdending
-                                if(!empty($proLists) && !empty($results)){
-                                  foreach ($proLists as $pID => $pOrder) { ?>
+                                
+                                //print_r($pro_results);
+                                if(!empty($pro_results)){
+                                  foreach ($pro_results as $pID) { 
+                                
+                                  ?>
 
-                                    <li data-id="<?php echo $pID;?>" id="<?php echo $pID;?>-selection" class="ms-elem-selection" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?>>
+                                    <li data-id="<?php echo $pID->product_id;?>" id="<?php echo $pID->product_id;?>-selection" class="ms-elem-selection" data-toggle="tooltip" title="<?php echo get_product_name($pID->product_id,get_the_title($pID->product_id)); ?>">
 
-                                  <img src="<?php echo get_the_post_thumbnail_url($pID,'post-thumbnail');?>" class="pro-image"/>
+                                  <img src="<?php echo get_the_post_thumbnail_url($pID->product_id,'post-thumbnail');?>" class="pro-image"/>
 
-                                  <?php echo get_product_name($pID, get_the_title($pID));?>
+                                   <input type="text" class="p-title" name="prodname-<?php echo $pID->product_id;?>" value="<?php echo $pID->name;?>" />
 
                                   </li>
+                                  
+                                  <img src="<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png" data-id="<?php echo $pID->product_id;?>" class="remove-image remove-<?php echo $pID->product_id;?>" />
 
-                                  <input type="number" min="1" class="order-num order-<?php echo $pID;?>" name="order-<?php echo $pID;?>" value="<?php echo $pOrder; ?>"  />
+                                  <input type="number" min="1" class="order-num order-<?php echo $pID->product_id;?>" name="order-<?php echo $pID->product_id;?>" value="<?php echo $pID->product_order; ?>"  />
 
                                 <?php } } ?>
 
@@ -309,16 +361,18 @@ function get_product_name($product_id,$name){
                                   // hide rest of products
                                    foreach($products as $product){ 
 
-                                  $restPro =  (array_key_exists($product->get_id(),$proLists))? true:false;
+                                  $restPro =  (in_array($product->get_id(),$pro_ids))? true:false;
                                   if(!$restPro){
                                   ?>
-                                  <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selection" class="ms-elem-selection" style="display:none;">
+                                  <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selection" class="ms-elem-selection" style="display:none;" data-toggle="tooltip" title="<?php echo get_product_name($product->get_id(),$product->get_name()); ?>">
 
                                   <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
 
-                                  <?php echo get_product_name($product->get_id(),$product->get_name());?>
+                                  <input type="text" class="p-title" name="prodname-<?php echo $product->get_id();?>" value="<?php echo $product->get_name();?>" />
 
                                   </li>
+                                  
+                                  <img src="<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png" data-id="<?php echo $product->get_id();?>" class="remove-image remove-<?php echo $product->get_id();?>" style="display:none;" />
 
                                   <input type="number" min="1" class="order-num order-<?php echo $product->get_id();?>" name="order-<?php echo $product->get_id();?>" value="" style="display:none;" />
 
@@ -356,6 +410,7 @@ var countArr = [];
          var maxValues = getMaxOrderValueFromSelected();
       	jQuery(".order-"+ele_id).val(++maxValues);
       	jQuery(".order-"+ele_id).show();
+      	jQuery(".remove-"+ele_id).show();
       	jQuery(this).hide();
       	
       	var elem = document.getElementById('selectedDiv');
@@ -364,15 +419,21 @@ var countArr = [];
         
       });
       
-      jQuery(".ms-elem-selection").on('click',function(){
+      jQuery(".remove-image").on('click',function(){
       	var ele_id = jQuery(this).data('id');
-      	//console.log(ele_id);
+      	console.log(ele_id);
       	jQuery("#"+ele_id+"-selectable").show();
+      	jQuery("#"+ele_id+"-selection").hide();
       	jQuery(".order-"+ele_id).hide();
+      	jQuery(".remove-"+ele_id).hide();
       	jQuery(".order-"+ele_id).removeAttr('required');
       	jQuery(".order-"+ele_id).val('');
       	jQuery(this).hide();
       });
+      
+      jQuery('[data-toggle="tooltip"]').tooltip({
+      	'placement':'bottom'
+      });   
       
       
    });
