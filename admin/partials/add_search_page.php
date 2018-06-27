@@ -154,8 +154,10 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='edit'){
         $text_after  = $results['text_after'];
         $proLists = maybe_unserialize($results['product_lists']);
     }
-   // print_r($proLists);
-    
+    print_r($proLists);
+    echo "<br>";
+    asort($proLists);
+    print_r($proLists);
     
 }
 
@@ -286,14 +288,41 @@ function get_product_name($product_id,$name){
                                 <span class="select-header">Sort Order</span>
                                 <div class="clearfix"></div>
                                 <ul class="ms-list" tabindex="-1" id="selectedDiv">
-                                <?php foreach($products as $product){ 
-                                $order =  (array_key_exists($product->get_id(),$proLists))? $proLists[$product->get_id()]:false;
-                                ?>
-                                <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selection" class="ms-elem-selection" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?>>
-                                <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
-                                <?php echo get_product_name($product->get_id(),$product->get_name());?></li>
-                                <input type="number" min="1" class="order-<?php echo $product->get_id();?>" name="order-<?php echo $product->get_id();?>" value="<?php echo (!empty($results) && $order)? $order:''; ?>" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?> />
-                                <?php } ?>
+                                <?php 
+                                // for soring order with ascdending
+                                if(!empty($proLists) && !empty($results)){
+                                  foreach ($proLists as $pID => $pOrder) { ?>
+
+                                    <li data-id="<?php echo $pID;?>" id="<?php echo $pID;?>-selection" class="ms-elem-selection" <?php echo (!empty($results) && $order)? 'style=display:block;':'style=display:none;'; ?>>
+
+                                  <img src="<?php echo get_the_post_thumbnail_url($pID,'post-thumbnail');?>" class="pro-image"/>
+
+                                  <?php echo get_product_name($pID, get_the_title($pID));?>
+
+                                  </li>
+
+                                  <input type="number" min="1" class="order-num order-<?php echo $pID;?>" name="order-<?php echo $pID;?>" value="<?php echo $pOrder; ?>"  />
+
+                                <?php } } ?>
+
+                                  <?php
+                                  // hide rest of products
+                                   foreach($products as $product){ 
+
+                                  $restPro =  (array_key_exists($product->get_id(),$proLists))? true:false;
+                                  if(!$restPro){
+                                  ?>
+                                  <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selection" class="ms-elem-selection" style="display:none;">
+
+                                  <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
+
+                                  <?php echo get_product_name($product->get_id(),$product->get_name());?>
+
+                                  </li>
+
+                                  <input type="number" min="1" class="order-num order-<?php echo $product->get_id();?>" name="order-<?php echo $product->get_id();?>" value="" style="display:none;" />
+
+                                  <?php } } ?>
                                 </ul>
                                 </div>
                                 </div>
@@ -314,34 +343,30 @@ function get_product_name($product_id,$name){
     </div>        
 </div>
 <script>
+var countArr = [];
    jQuery('document').ready(function(){
 
    		jQuery('.select2').select2();
 
-    /*  jQuery('#select-all').click(function(){
-        jQuery('#multiSelect').multiSelect('select_all');
-        return false;
-      });
-      jQuery('#deselect-all').click(function(){
-        jQuery('#multiSelect').multiSelect('deselect_all');
-        return false;
-      });*/
       jQuery(".ms-elem-selectable").on('click',function(){
       	var ele_id = jQuery(this).data('id');
-      	console.log(ele_id);
+      	//console.log(ele_id);
       	jQuery("#"+ele_id+"-selection").show();
       	jQuery(".order-"+ele_id).attr('required','required');
-      	jQuery(".order-"+ele_id).val('1');
+         var maxValues = getMaxOrderValueFromSelected();
+      	jQuery(".order-"+ele_id).val(++maxValues);
       	jQuery(".order-"+ele_id).show();
       	jQuery(this).hide();
       	
       	var elem = document.getElementById('selectedDiv');
-  		elem.scrollTop = elem.scrollHeight;
+  		  elem.scrollTop = elem.scrollHeight;
+
+        
       });
       
       jQuery(".ms-elem-selection").on('click',function(){
       	var ele_id = jQuery(this).data('id');
-      	console.log(ele_id);
+      	//console.log(ele_id);
       	jQuery("#"+ele_id+"-selectable").show();
       	jQuery(".order-"+ele_id).hide();
       	jQuery(".order-"+ele_id).removeAttr('required');
@@ -351,4 +376,16 @@ function get_product_name($product_id,$name){
       
       
    });
+
+   function getMaxOrderValueFromSelected(){
+     countArr= [];
+     jQuery(".order-num").each(function(){ 
+      var o = jQuery(this).val();
+        console.log(o); 
+        countArr.push(o);
+    });
+     console.log(countArr);
+     console.log(Math.max.apply(undefined, countArr));
+      return Math.max.apply(undefined, countArr);
+   }
 </script>
