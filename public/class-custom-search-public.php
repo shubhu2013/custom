@@ -100,16 +100,27 @@ class Custom_Search_Public {
 
 	}
 	function cs_add_query_vars($vars){
-		$vars[] = "sk";
+		$vars[] = "property_id";
     	return $vars;
 	}
-	public function cs_url_rewrite_templates(){
-      var_dump(get_query_var( 'sk' ));
-		/*if ( get_query_var( 's' ) ) {
-	        add_filter( 'template_include', function() {
-	            return get_template_directory() . '/single-movie-image.php';
+	public function cs_template_redirect(){
+		//global $wp_query;
+		$url_path = trim(parse_url(add_query_arg(array()), PHP_URL_PATH), '/');
+
+		$url_path = explode('/', $url_path);
+		 
+		  if ( $url_path[1] == 's' ) {
+		  	set_query_var( 'keywords', $url_path[2]);
+		  	add_filter( 'template_include', function() {
+	            return plugin_dir_path( dirname( __FILE__ ) ).'includes/custom-load-template.php';
 	        });
-    	}*/
+
+		  }
+		
+	}
+	function cs_init(){
+		add_rewrite_rule(
+        '^properties/?([^/]*)/?','index.php?pagename=properties&property_id=$matches[1]','bottom' );
 	}
 
 }
