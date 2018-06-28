@@ -182,7 +182,9 @@ class Custom_Search {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 		$this->loader->add_action( 'query_vars', $plugin_public,'cs_add_query_vars');
 		$this->loader->add_action( 'template_redirect', $plugin_public, 'cs_template_redirect' );
-		$this->loader->add_action( 'init', $plugin_public, 'cs_init' );
+		//$this->loader->add_action( 'init', $plugin_public, 'removeCatlogOrder' );
+		$this->loader->add_filter( 'pre_get_document_title', $plugin_public, 'cs_pre_get_document_title' );
+		$this->loader->add_filter( 'body_class', $plugin_public, 'cs_body_class' );
 
 	}
 

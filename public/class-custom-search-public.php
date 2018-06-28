@@ -100,17 +100,30 @@ class Custom_Search_Public {
 
 	}
 	function cs_add_query_vars($vars){
-		$vars[] = "property_id";
+		$vars[] = "s";
     	return $vars;
 	}
 	public function cs_template_redirect(){
-		//global $wp_query;
+		
 		$url_path = trim(parse_url(add_query_arg(array()), PHP_URL_PATH), '/');
 
 		$url_path = explode('/', $url_path);
 		 
-		  if ( $url_path[1] == 's' ) {
+		  if (isset($url_path[1]) && isset($url_path[2]) && $url_path[1] == 's' ) {
+		  	
+		  		global $wp_query;
+			    // if we have a 404 status
+			    if ($wp_query->is_404) {
+			        // set status of 404 to false
+			        $wp_query->is_404 = false;
+			        $wp_query->is_archive = true;
+			    }
+			    //change the header to 200 OK
+			    header("HTTP/1.1 200 OK");
+		  	
+		  	
 		  	set_query_var( 'keywords', $url_path[2]);
+		  	
 		  	add_filter( 'template_include', function() {
 	            return plugin_dir_path( dirname( __FILE__ ) ).'includes/custom-load-template.php';
 	        });
@@ -118,9 +131,37 @@ class Custom_Search_Public {
 		  }
 		
 	}
-	function cs_init(){
-		add_rewrite_rule(
-        '^properties/?([^/]*)/?','index.php?pagename=properties&property_id=$matches[1]','bottom' );
+	function cs_pre_get_document_title(){ 
+	
+		$url_path = trim(parse_url(add_query_arg(array()), PHP_URL_PATH), '/');
+
+		$url_path = explode('/', $url_path);
+		 
+		  if (isset($url_path[1]) && isset($url_path[2]) && $url_path[1] == 's' ) {
+		  	
+	 	      return $this->getTitle(urldecode($url_path[2]));
+		  }
+		
+	}
+	function getTitle($keyword){
+		global $wpdb;
+		$table = $wpdb->prefix.'search_forms';
+	    $sql = "SELECT * FROM $table WHERE keyword='$keyword' LIMIT 1";
+    	$results = $wpdb->get_results($sql,'ARRAY_A');
+    	if($wpdb->num_rows > 0){
+    		return $results[0]['title'];
+    	}
+    	
+    	return $keyword;
+	}
+	function removeCatlogOrder(){
+		remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+		//This snippet will remove the notice that shows the number of results.
+
+		remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering',30 );
+	}
+	function cs_body_class($classes){
+		return array_merge( $classes, array( 'woocommerce woocommerce-page woocommerce-js' ) );
 	}
 
 }
