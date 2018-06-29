@@ -73,7 +73,22 @@ class Custom_Search_Public {
 		 * class.
 		 */
 
+
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/custom-search-public.css', array(), $this->version, 'all' );
+
+		$url_path = trim(parse_url(add_query_arg(array()), PHP_URL_PATH), '/');
+
+		$url_path = explode('/', $url_path);
+		 
+		  if (isset($url_path[1]) && isset($url_path[2]) && $url_path[1] == 's' ) {
+
+		  	if (in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+
+	 	     /* wp_enqueue_style( 'cs-woocommerce', plugins_url() . '/woocommerce/assets/css/woocommerce.css', array(), $this->version, 'all' );
+	 	      wp_enqueue_style( 'cs-woocommerce-layout-css', plugins_url() . '/woocommerce/assets/css/woocommerce-layout.css', array('cs-woocommerce'), $this->version, 'all' );
+	 	      wp_enqueue_style( 'cs-woocommerce-smallscreen-css', plugins_url() . '/woocommerce/assets/css/woocommerce-smallscreen.css', array('cs-woocommerce'), $this->version, 'all' );*/
+	 	  	}
+		  }
 
 	}
 
@@ -95,6 +110,7 @@ class Custom_Search_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
+
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/custom-search-public.js', array( 'jquery' ), $this->version, false );
 
@@ -139,7 +155,7 @@ class Custom_Search_Public {
 		 
 		  if (isset($url_path[1]) && isset($url_path[2]) && $url_path[1] == 's' ) {
 		  	
-	 	      return $this->getTitle(urldecode($url_path[2]));
+	 	      return $this->getTitle(urldecode($url_path[2])).' | '.get_bloginfo('name');
 		  }
 		
 	}
@@ -154,12 +170,7 @@ class Custom_Search_Public {
     	
     	return $keyword;
 	}
-	function removeCatlogOrder(){
-		remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
-		//This snippet will remove the notice that shows the number of results.
-
-		remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering',30 );
-	}
+	
 	function cs_body_class($classes){
 		return array_merge( $classes, array( 'woocommerce woocommerce-page woocommerce-js' ) );
 	}

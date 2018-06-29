@@ -149,6 +149,7 @@ class Custom_List_Table extends WP_List_Table {
 	function column_keyword($item){
 		$delete_nonce = wp_create_nonce( 'cs_delete_record' );
 	  $actions = array(
+	  			'view'      => sprintf('<a href="%s/s/%s" target="_blank">View Page</a>', site_url(),$item['keyword']),
 	            'edit'      => sprintf('<a href="?page=%s&action=%s&id=%s">Edit</a>','new-search-page','edit',$item['id']),
 	            'delete' => sprintf( '<a href="?page=%s&action=%s&searchId=%s&_wpnonce=%s">Delete</a>', esc_attr( $_REQUEST['page'] ), 'delete', absint( $item['id'] ), $delete_nonce )
 	        );
