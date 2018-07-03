@@ -17,8 +17,8 @@
 .ms-container .ms-selection li.ms-elem-selection{
   width: 235px;
 }
-input[type=number] {
-        height: 30px;
+.order-num {
+    height: 30px;
     line-height: 1;
     width: 42px;
     float: right;
@@ -39,6 +39,7 @@ input[type=number] {
 img.pro-image{
 	width:35px;
 	vertical-align: middle;
+  height: 35px;
 }img.remove-image{
 	width: 19px;
     margin-left: 227px;
@@ -54,8 +55,8 @@ img.remove-image:hover{
 	
 }
 .ms-container .ms-selection li.ms-elem-selection:hover{
-	/*cursor: pointer;
-	background: transparent url('<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png') no-repeat 100% 50%;*/
+	cursor: pointer;
+	/*background: transparent url('<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png') no-repeat 100% 50%;*/
 }
 textarea#text_before,textarea#text_after {
     height: 200px !important;
@@ -108,7 +109,10 @@ if(isset($_POST['submit_page'])) {
        exit;
 
     } else {
+        echo "<pre>";
          print_r($_POST);
+        echo "</pre>";
+       // die; 
          $pro_array = array();
          
 		//print_r($pro_array);
@@ -121,7 +125,6 @@ if(isset($_POST['submit_page'])) {
          $text_after = wp_kses_post( stripslashes($_POST['text_after']));
          $active_ingredient =  (array_key_exists("active_ingredient",$_POST))?'1':'0';
          
-         //$pro_lists = maybe_serialize($pro_array);
 
          $data = array(
             'keyword' => $keyword,
@@ -130,7 +133,6 @@ if(isset($_POST['submit_page'])) {
             'meta_desc' => $meta_desc,
             'text_before' => $text_before,
             'text_after' => $text_after,
-            //'product_lists' => $pro_lists,
             'active_ingredient' => $active_ingredient,
             'author' => get_current_user_id(),
         );
@@ -166,11 +168,15 @@ function insert_form_products($form_id,$postData,$productTable,$products){
 	  $order =	$postData['order-'.$pid->get_id()];
 	  if($order!=''){
 	    $product_name =	$postData['prodname-'.$pid->get_id()];
+      $ingredients  = $postData['ingredients-'.$pid->get_id()];
+      $description  = $postData['description-'.$pid->get_id()];
 	    $data = array(
 	    'form_id'       => $form_id,
 	    'product_id'    => $pid->get_id(),
 	    'name'          => $product_name,
 	    'product_order' => $order,
+      'ingredients'   => $ingredients,
+      'description'   => $description
 	    );
 	    if($wpdb->insert($productTable,$data)){
 			echo "INsert";
@@ -346,12 +352,15 @@ function get_product_name($product_id,$name){
                                     <li data-id="<?php echo $pID->product_id;?>" id="<?php echo $pID->product_id;?>-selection" class="ms-elem-selection" data-toggle="tooltip" title="<?php echo get_product_name($pID->product_id,get_the_title($pID->product_id)); ?>">
 
                                   <img src="<?php echo get_the_post_thumbnail_url($pID->product_id,'post-thumbnail');?>" class="pro-image"/>
+                                  <span id="span-title-<?php echo $pID->product_id;?>"><?php echo $pID->name;?></span> 
+                                   <input type="hidden" class="p-title" name="prodname-<?php echo $pID->product_id;?>" value="<?php echo $pID->name;?>" />
 
-                                   <input type="text" class="p-title" name="prodname-<?php echo $pID->product_id;?>" value="<?php echo $pID->name;?>" />
+                                   <input type="hidden" class="p-title" id="ingredients-<?php echo $pID->product_id;?>" name="ingredients-<?php echo $pID->product_id;?>" value="<?php echo $pID->ingredients;?>" />
+                                   <input type="hidden" class="p-title" id="description-<?php echo $pID->product_id;?>" name="description-<?php echo $pID->product_id;?>" value="<?php echo $pID->description;?>"" />
 
                                   </li>
                                   
-                                  <img src="<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png" data-id="<?php echo $pID->product_id;?>" class="remove-image remove-<?php echo $pID->product_id;?>" />
+                                  <img src="<?php echo plugins_url(); ?>/custom-search/admin/img/remove.png" data-id="<?php echo $pID->product_id;?>" data-toggle="tooltip" title="Remove" class="remove-image remove-<?php echo $pID->product_id;?>" />
 
                                   <input type="number" min="1" class="order-num order-<?php echo $pID->product_id;?>" name="order-<?php echo $pID->product_id;?>" value="<?php echo $pID->product_order; ?>"  />
 
@@ -366,9 +375,12 @@ function get_product_name($product_id,$name){
                                   ?>
                                   <li data-id="<?php echo $product->get_id();?>" id="<?php echo $product->get_id();?>-selection" class="ms-elem-selection" style="display:none;" data-toggle="tooltip" title="<?php echo get_product_name($product->get_id(),$product->get_name()); ?>">
 
-                                  <img src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
+                                  <img data-toggle="tooltip" title="Remove" src="<?php echo get_the_post_thumbnail_url($product->get_id(),'post-thumbnail');?>" class="pro-image"/>
+                                  <span id="span-title-<?php echo $product->get_id();?>"><?php echo $product->get_name();?></span>
+                                  <input type="hidden" class="p-title" name="prodname-<?php echo $product->get_id();?>" value="<?php echo $product->get_name();?>" />
 
-                                  <input type="text" class="p-title" name="prodname-<?php echo $product->get_id();?>" value="<?php echo $product->get_name();?>" />
+                                  <input type="hidden" class="p-title" id="ingredients-<?php echo $product->get_id();?>" name="ingredients-<?php echo $product->get_id();?>" value="" />
+                                   <input type="hidden" class="p-title" id="description-<?php echo $product->get_id();?>" name="description-<?php echo $product->get_id();?>" value="" />
 
                                   </li>
                                   
@@ -396,6 +408,44 @@ function get_product_name($product_id,$name){
         </div>
     </div>        
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="cs_pro_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title modal-pro-title" id="exampleModalLongTitle">Edit Product</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-12">
+               <input type="text" class="form-control" id="m-title" placeholder="Title" value="" /><br>
+
+                <input type="number" class="form-control" id="m-order" placeholder="Order" value="" />
+                <br>
+                <textarea id="m-ingredient" class="form-control" placeholder="Ingredients"></textarea>
+            </div>
+            <div class="col-md-12">
+            <br>
+               <?php
+               $description=''; 
+               echo wp_editor( $description, 'description');?>
+            </div>
+            <input type="hidden" value="" id="edit-modal-id">
+          </div>
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveModalForm">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
 <script>
 var countArr = [];
    jQuery('document').ready(function(){
@@ -419,6 +469,45 @@ var countArr = [];
         
       });
       
+      jQuery(".ms-elem-selection").on('click',function(){
+        //jQuery('.wp-editor-wrap').removeClass('tmce-active');
+        //jQuery('#wp-description-wrap').addClass('tmce-active');
+        var ele_id = jQuery(this).data('id');
+        console.log(ele_id);
+        var eTitle = jQuery(this).find('span#span-title-'+ele_id).text();
+        console.log(eTitle);
+         var eOrder = jQuery(".order-"+ele_id).val();
+        console.log(eOrder);
+        var eIngred = jQuery("#ingredients-"+ele_id).val();
+        console.log(eIngred);
+        var eDesc = jQuery("#description-"+ele_id).val();
+        console.log(eDesc);
+        jQuery("#edit-modal-id").val(ele_id);
+        jQuery("#m-title").val(eTitle);
+        jQuery("#m-order").val(eOrder);
+        jQuery("#m-ingredient").val(eIngred);
+        if (jQuery("#wp-description-wrap").hasClass("tmce-active")){
+          tinyMCE.activeEditor.setContent(eDesc);
+        }
+        jQuery("#cs_pro_modal").modal('show');
+      });
+
+       jQuery("#saveModalForm").on('click',function(){
+         var ele_id =  jQuery("#edit-modal-id").val();
+         jQuery("input[name='prodname-"+ele_id+"']").val(jQuery("#m-title").val());
+         jQuery("#span-title-"+ele_id).text(jQuery("#m-title").val());
+         jQuery("input[name='order-"+ele_id+"']").val(jQuery("#m-order").val());
+         jQuery("input[name='ingredients-"+ele_id+"']").val(jQuery("#m-ingredient").val());
+         if (jQuery("#wp-description-wrap").hasClass("tmce-active")){ 
+          jQuery("input[name='description-"+ele_id+"']").val(tinyMCE.activeEditor.getContent()); 
+        }
+         jQuery("#cs_pro_modal").modal('hide');
+        });
+
+       jQuery("#cs_pro_modal").on('hide.bs.modal',function(){
+        console.log('hide');
+       });
+
       jQuery(".remove-image").on('click',function(){
       	var ele_id = jQuery(this).data('id');
       	console.log(ele_id);
